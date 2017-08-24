@@ -29,8 +29,6 @@ class DaemonRestClient implements ScannerInterface {
     $filePath = $file->getFileUri();
     $file_name = basename($filePath);
 
-    // @todo if this exists return.
-
     $post_fields = [
       'name' => $file_name,
       'file' => new \CurlFile($filePath, mime_content_type($filePath), $file_name)
@@ -45,12 +43,12 @@ class DaemonRestClient implements ScannerInterface {
 
     curl_close($ch);
 
-    // Process the output from the stream.
+    // Process the output from the service.
     if (preg_match('/^Everything ok : true$/', $response)) {
       $result = Scanner::FILE_IS_CLEAN;
     }
     elseif (preg_match('/^Everything ok : false$/', $response, $matches)) {
-      $this->_virus_name = $matches[1];
+      $this->_virus_name = 'unknown';
       $result = Scanner::FILE_IS_INFECTED;
     }
     else {
@@ -73,6 +71,6 @@ class DaemonRestClient implements ScannerInterface {
    * {@inheritdoc}
    */
   public function version() {
-    return 'THIS IS BLAH';
+    return 'rest client';
   }
 }
