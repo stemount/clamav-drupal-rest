@@ -18,3 +18,6 @@ mode_daemon_tcpip:
 
 mode_daemon_unixsocket:
   unixsocket: '/var/clamav/clamd'
+
+mode_daemon_rest_client:
+  endpoint: 'http://192.168.82.68:8080/scan'

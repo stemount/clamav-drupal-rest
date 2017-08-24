@@ -30,8 +30,12 @@ function clamav_requirements($phase) {
       case Config::MODE_UNIX_SOCKET:
         $scanner = new Scanner\DaemonUnixSocket($config);
         break;
+
+      case Config::MODE_DAEMON_REST_CLIENT:
+        $scanner = new Scanner\DaemonRestClient($config);
+        break;
     }
-  
+
     if ($version = $scanner->version()) {
       $requirements['clamav'] = array(
         'title' => t('ClamAV version'),

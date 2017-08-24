@@ -53,6 +53,10 @@ class Scanner {
       case Config::MODE_UNIX_SOCKET:
         $this->scanner = new Scanner\DaemonUnixSocket($this->config);
         break;
+
+      case Config::MODE_DAEMON_REST_CLIENT:
+        $this->scanner = new Scanner\DaemonRestClient($this->config);
+        break;
     }
   }
 
