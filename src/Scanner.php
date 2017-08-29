@@ -25,7 +25,6 @@ class Scanner {
   const FILE_IS_NOT_SCANNABLE = FALSE;
   const FILE_SCANNABLE_IGNORE = NULL;
 
-
   // Instance of a scanner class, implementing ScannerInterface.
   protected $scanner = NULL;
 

@@ -98,4 +98,5 @@ class DaemonRestClient implements ScannerInterface {
     }
 
   }
+
 }
