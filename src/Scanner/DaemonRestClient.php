@@ -12,12 +12,15 @@ class DaemonRestClient implements ScannerInterface {
   protected $_endpoint;
   protected $_port;
   protected $_virus_name = '';
+  protected $_httpclient;
 
   /**
    * {@inheritdoc}
    */
   public function __construct(Config $config) {
     $this->_endpoint = $config->get('mode_daemon_rest_client.endpoint');
+
+    $this->_httpclient = \Drupal::httpClient();
   }
 
   /**
@@ -25,36 +28,42 @@ class DaemonRestClient implements ScannerInterface {
    */
   public function scan(FileInterface $file) {
 
-    $ch = curl_init();
-    $filePath = $file->getFileUri();
-    $file_name = basename($filePath);
+    $result = Scanner::FILE_IS_UNCHECKED;
 
-    // @todo if this exists return.
+    try {
+      $file_post = $this->_httpclient->post($this->_endpoint, [
+        'multipart' => [
+          [
+            'name' => 'file',
+            'contents' => fopen($file->getFileUri(), 'r')
+          ],
+          [
+            'name' => 'name',
+            'contents' => $file->getFilename()
+          ],
+        ]
+      ]);
 
-    $post_fields = [
-      'name' => $file_name,
-      'file' => new \CurlFile($filePath, mime_content_type($filePath), $file_name)
-    ];
+      // @todo is there a nicer way?
+      $response = json_decode($file_post->getBody()->getContents());
 
-    curl_setopt($ch, CURLOPT_URL, $this->_endpoint);
-    curl_setopt($ch, CURLOPT_POST, TRUE);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    } catch (\Exception $e) {
 
-    $response = trim(curl_exec($ch));
+      \Drupal::logger('Clam AV')->warning('Request for ClamAV service failed for file @file, error @error.', ['@file' => $file->getFilename(), '@error' => $e->getMessage()]);
 
-    curl_close($ch);
+      return $result;
 
-    // Process the output from the stream.
-    if (preg_match('/^Everything ok : true$/', $response)) {
-      $result = Scanner::FILE_IS_CLEAN;
     }
-    elseif (preg_match('/^Everything ok : false$/', $response, $matches)) {
-      $this->_virus_name = $matches[1];
-      $result = Scanner::FILE_IS_INFECTED;
+
+    // Check for any viruses detected.
+    if (isset($response->file->status)) {
+      $result = $response->file->status == 'OK' ? Scanner::FILE_IS_CLEAN : Scanner::FILE_IS_INFECTED;
+
+      if (isset($response->file->foundViruses)) {
+        $this->_virus_name = current($response->file->foundViruses->stream);
+      }
     }
     else {
-      preg_match('/^Internal Server Error$/', $response, $matches);
       $result = Scanner::FILE_IS_UNCHECKED;
     }
 
@@ -73,6 +82,20 @@ class DaemonRestClient implements ScannerInterface {
    * {@inheritdoc}
    */
   public function version() {
-    return 'THIS IS BLAH';
+
+    try {
+
+      $request = $this->_httpclient->get($this->_endpoint);
+
+      if ($json = json_decode($request->getBody())) {
+        return isset($json->version) ?: 'unknown';
+      }
+
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('Clam AV')->warning('Unable to connect to ClamAV REST Endpoint @endpoint. @error', ['@endpoint' => $this->_endpoint, '@error' => $e->getMessage()]);
+      return 'N/A';
+    }
+
   }
 }

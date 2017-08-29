@@ -167,7 +167,7 @@ class ClamAVConfigForm extends ConfigFormBase {
       '#title' => $this->t('REST endpoint'),
       '#default_value' => $config->get('mode_daemon_rest_client.endpoint'),
       '#maxlength' => 255,
-      '#description' => t('The hostname for the ClamAV REST client. Defaults to %default_host.', array('%default_host' => CLAMAV_DEFAULT_HOST)),
+      '#description' => t('The hostname for the ClamAV REST client.'),
     );
 
     // Allow scanning according to scheme-wrapper.
@@ -199,7 +199,6 @@ class ClamAVConfigForm extends ConfigFormBase {
         '#default_value' => $this->scheme_wrappers_to_scan('remote'),
       );
     }
-
 
     $form['verbosity_wrapper'] = array(
       '#type' => 'details',
