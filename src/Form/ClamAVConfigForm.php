@@ -52,7 +52,8 @@ class ClamAVConfigForm extends ConfigFormBase {
       '#options' => array(
         Config::MODE_EXECUTABLE  => $this->t('Executable'),
         Config::MODE_DAEMON      => $this->t('Daemon mode (over TCP/IP)'),
-        Config::MODE_UNIX_SOCKET => $this->t('Daemon mode (over Unix socket)')
+        Config::MODE_UNIX_SOCKET => $this->t('Daemon mode (over Unix socket)'),
+        Config::MODE_DAEMON_REST_CLIENT => $this->t('Daemon mode (over REST)')
       ),
       '#default_value' => $config->get('scan_mode'),
       '#description' => $this->t("Control how Drupal connects to ClamAV.<br />Daemon mode is recommended if the ClamAV service is capable of running as a daemon."),
@@ -150,6 +151,25 @@ class ClamAVConfigForm extends ConfigFormBase {
     );
 
 
+    // Configuration if ClamAV is set to Daemon mode.
+    $form['scan_mechanism_wrapper']['mode_daemon_rest_client'] = array(
+      '#type' => 'details',
+      '#title' => $this->t('Daemon mode configuration (over TCP/IP)'),
+      '#open' => TRUE,
+      '#states' => array(
+        'visible' => array(
+          ':input[name="scan_mode"]' => array('value' => Config::MODE_DAEMON_REST_CLIENT),
+        ),
+      ),
+    );
+    $form['scan_mechanism_wrapper']['mode_daemon_rest_client']['rest_endpoint'] = array(
+      '#type' => 'textfield',
+      '#title' => $this->t('REST endpoint'),
+      '#default_value' => $config->get('mode_daemon_rest_client.endpoint'),
+      '#maxlength' => 255,
+      '#description' => t('The hostname for the ClamAV REST client.'),
+    );
+
     // Allow scanning according to scheme-wrapper.
     $form['schemes'] = array(
       '#type' => 'details',
@@ -180,7 +200,6 @@ class ClamAVConfigForm extends ConfigFormBase {
       );
     }
 
-
     $form['verbosity_wrapper'] = array(
       '#type' => 'details',
       '#title' => $this->t('Verbosity'),
@@ -206,7 +225,7 @@ class ClamAVConfigForm extends ConfigFormBase {
     // - the executable path exists
     // - the unix socket exists
     // - Drupal can connect to the hostname/port (warn but don't fail)
-    
+
   }
 
   /**
@@ -241,6 +260,8 @@ class ClamAVConfigForm extends ConfigFormBase {
       ->set('mode_daemon_tcpip.port', $form_state->getValue('port'))
 
       ->set('mode_daemon_unixsocket.unixsocket', $form_state->getValue('unixsocket'))
+
+      ->set('mode_daemon_rest_client.endpoint', $form_state->getValue('rest_endpoint'))
 
       ->save();
 

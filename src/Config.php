@@ -3,10 +3,11 @@
 namespace Drupal\clamav;
 
 
-class Config  {
+class Config {
   const MODE_DAEMON = 0;
   const MODE_EXECUTABLE = 1;
   const MODE_UNIX_SOCKET = 2;
+  const MODE_DAEMON_REST_CLIENT = 3;
 
   const OUTAGE_BLOCK_UNCHECKED = 0;
   const OUTAGE_ALLOW_UNCHECKED = 1;

@@ -25,7 +25,6 @@ class Scanner {
   const FILE_IS_NOT_SCANNABLE = FALSE;
   const FILE_SCANNABLE_IGNORE = NULL;
 
-
   // Instance of a scanner class, implementing ScannerInterface.
   protected $scanner = NULL;
 
@@ -52,6 +51,10 @@ class Scanner {
 
       case Config::MODE_UNIX_SOCKET:
         $this->scanner = new Scanner\DaemonUnixSocket($this->config);
+        break;
+
+      case Config::MODE_DAEMON_REST_CLIENT:
+        $this->scanner = new Scanner\DaemonRestClient($this->config);
         break;
     }
   }
